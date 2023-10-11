@@ -3,6 +3,7 @@ from setuptools.extension import Extension
 from Cython.Build import cythonize
 import os
 import numpy as np
+import platform
 
 module_name = "mhps"
 pyx_path = [f"{module_name}/{module_name}_wrapper.pyx", f"{module_name}/lib/functions.c"]
@@ -13,9 +14,12 @@ library_dirs = []
 if os.name == 'nt':  # Windows, assumming MSVC compiler
     libraries = []
     compiler_args = ['/Ox', '/fp:fast']
-elif os.name == 'posix':  # UNIX, assumming GCC compiler
+elif os.name == 'posix':  # UNIX, assuming GCC compiler
     libraries = ['m']
-    compiler_args = ['-O3', '-ffast-math', '-march=native', '-mtune=native', '-flto']
+    if platform.system() == 'Darwin' and platform.processor() == 'arm': # if it's a mac with apple silicon
+        compiler_args = ['-O3', '-ffast-math', '-flto']
+    else:
+        compiler_args = ['-O3', '-ffast-math', '-march=native', '-mtune=native', '-flto']
 else:
     raise Exception('Unsupported operating system')
 
